@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão e Dimensionamento</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        bordeaux: {
+                            50: '#fbf3f5',
+                            100: '#f6e4e8',
+                            200: '#eecfd5',
+                            300: '#e1b1bc',
+                            400: '#ce889c',
+                            500: '#b8607a',
+                            600: '#9d425b',
+                            700: '#843147',
+                            800: '#6f2b3c',
+                            900: '#5f2736',
+                            950: '#34111b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script>
+        // Set theme as early as possible to prevent flashing of unstyled content
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .card-box {
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+                background: white !important;
+                color: black !important;
+                transform: none !important; /* Disable animations on print */
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            th, td {
+                border: 1px solid #94a3b8 !important;
+                color: black !important;
+                padding: 6px 10px !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="font-sans min-h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col antialiased transition-colors duration-300">
+
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 no-print shadow-sm dark:shadow-lg transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-gradient-to-tr from-bordeaux-500 to-bordeaux-700 dark:from-bordeaux-400 dark:to-bordeaux-600 rounded-xl shadow-lg shadow-bordeaux-500/20 text-white">
+                        <i class="fa-solid font-bold fa-snowflake text-2xl animate-spin-slow"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-bordeaux-700 to-bordeaux-500 dark:from-bordeaux-400 dark:to-bordeaux-200 bg-clip-text text-transparent">
+                            Gestão e Dimensionamento
+                        </h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Controle de Ambientes, Carga Térmica e Consumo Energético</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Theme Toggle Button -->
+                    <button id="btnThemeToggle" onclick="toggleTheme()" class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg transition-all flex items-center gap-2 shadow-sm focus:outline-none">
+                        <i id="themeIcon" class="fa-solid fa-moon"></i>
+                        <span class="hidden sm:inline">Tema</span>
+                    </button>
+                    
+                    <button id="btnExportCsv" onclick="exportToCSV()" class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg transition-all flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-file-csv text-emerald-600 dark:text-emerald-400"></i>
+                        <span>Exportar CSV</span>
+                    </button>
+                    <button id="btnPrint" onclick="window.print()" class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-lg transition-all flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-print text-bordeaux-600 dark:text-bordeaux-400"></i>
+                        <span>Imprimir / PDF</span>
+                    </button>
+                    <button onclick="confirmResetAll()" class="px-3 py-2 text-xs sm:text-sm font-medium bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 rounded-lg transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span class="hidden sm:inline">Limpar Dados</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Header Visible only on Print -->
+    <div class="hidden print-only p-6 mb-4 border-b border-slate-300">
+        <h1 class="text-2xl font-bold text-slate-900">Relatório de Dimensionamento Climatizado</h1>
+        <p class="text-sm text-slate-600">Gerado em: <span id="printDate"></span></p>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <section id="dashboard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Card 1 -->
+            <div class="card-box bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden group hover:border-bordeaux-400 dark:hover:border-bordeaux-600 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Ambientes</span>
+                    <div class="p-2 bg-bordeaux-100 dark:bg-bordeaux-500/10 text-bordeaux-600 dark:text-bordeaux-400 rounded-lg">
+                        <i class="fa-solid fa-door-open"></i>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="dashTotalEnvironments" class="text-2xl font-bold text-slate-900 dark:text-slate-100">0</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">cadastrados</span>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card-box bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden group hover:border-bordeaux-400 dark:hover:border-bordeaux-600 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Máquinas</span>
+                    <div class="p-2 bg-bordeaux-100 dark:bg-bordeaux-500/10 text-bordeaux-600 dark:text-bordeaux-400 rounded-lg">
+                        <i class="fa-solid fa-fan"></i>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-baseline gap-2">
+                    <span id="dashTotalUnits" class="text-2xl font-bold text-slate-900 dark:text-slate-100">0</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">unidades</span>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card-box bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden group hover:border-bordeaux-400 dark:hover:border-bordeaux-600 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Carga Térmica</span>
+                    <div class="p-2 bg-bordeaux-100 dark:bg-bordeaux-500/10 text-bordeaux-600 dark:text-bordeaux-400 rounded-lg">
+                        <i class="fa-solid fa-temperature-arrow-down"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span id="dashTotalBtu" class="text-2xl font-bold text-slate-900 dark:text-slate-100">0</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 ml-1">BTU/h</span>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card-box bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden group hover:border-bordeaux-400 dark:hover:border-bordeaux-600 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Potência Elétrica</span>
+                    <div class="p-2 bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span id="dashTotalKw" class="text-2xl font-bold text-slate-900 dark:text-slate-100">0.00</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 ml-1">kW</span>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="card-box bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden group hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg border-l-4 border-l-emerald-500">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Custo Mensal Est.</span>
+                    <div class="p-2 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                        <i class="fa-solid fa-brazilian-real-sign"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span id="dashTotalCost" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">R$ 0,00</span>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        <span id="dashTotalKwh">0 kWh</span>/mês
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tariff Config Bar (Inline Settings) -->
+        <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 no-print shadow-sm transition-colors duration-300">
+            <div class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                <i class="fa-solid fa-sliders text-bordeaux-600 dark:text-bordeaux-400"></i>
+                <span class="font-medium">Parâmetros de Cálculo de Energia:</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs">
+                <label for="tariffRate" class="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                    <span>Tarifa de Energia (R$/kWh):</span>
+                    <input type="number" id="tariffRate" value="0.85" step="0.01" min="0" class="w-24 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-2.5 py-1 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-bordeaux-500 focus:ring-1 focus:ring-bordeaux-500 text-right font-mono font-semibold transition-colors duration-300">
+                </label>
+                <div class="hidden sm:block text-slate-300 dark:text-slate-600">|</div>
+                <span class="hidden md:inline text-slate-500 dark:text-slate-400 text-[11px]" title="Base de cálculo: EER padrão médio de 3.412 BTU/h por kW elétrico (~11 BTU/Wh)">
+                    <i class="fa-solid fa-circle-info mr-1"></i>Eficiência média: ~3.412 BTU/Wh
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <section class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl no-print transition-colors duration-300">
+                <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+                    <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <i id="formIcon" class="fa-solid fa-plus-circle text-bordeaux-600 dark:text-bordeaux-400"></i>
+                        <span id="formTitle">Adicionar Ambiente</span>
+                    </h2>
+                    <button type="button" id="btnCancelEdit" onclick="cancelEdit()" class="hidden text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 underline">
+                        Cancelar
+                    </button>
+                </div>
+
+                <form id="envForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                    <input type="hidden" id="editId" value="">
+
+                    <!-- Nome do Ambiente -->
+                    <div>
+                        <label for="envName" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Nome do Ambiente <span class="text-rose-500 dark:text-rose-400">*</span>
+                        </label>
+                        <input type="text" id="envName" required placeholder="Ex: Sala de Reunião, Quarto Master" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-bordeaux-500/50 focus:border-bordeaux-500 transition-colors duration-300">
+                    </div>
+
+                    <!-- Potência BTU & Custom Input -->
+                    <div>
+                        <label for="btuPreset" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Potência por Aparelho (BTU/h) <span class="text-rose-500 dark:text-rose-400">*</span>
+                        </label>
+                        <select id="btuPreset" onchange="toggleCustomBtu(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-bordeaux-500/50 focus:border-bordeaux-500 transition-colors duration-300">
+                            <option value="9000">9.000 BTU/h (Básico / Quartos pequenos)</option>
+                            <option value="12000" selected>12.000 BTU/h (Quartos e Salas médias)</option>
+                            <option value="18000">18.000 BTU/h (Salas / Escritórios)</option>
+                            <option value="24000">24.000 BTU/h (Ambientes amplos)</option>
+                            <option value="30000">30.000 BTU/h (Lojas / Salas grandes)</option>
+                            <option value="36000">36.000 BTU/h (Espaços Comerciais)</option>
+                            <option value="60000">60.000 BTU/h (Grandes Áreas / Auditórios)</option>
+                            <option value="custom">-- Valor Personalizado --</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom BTU Field (Hidden by default) -->
+                    <div id="customBtuContainer" class="hidden">
+                        <label for="customBtu" class="block text-xs font-medium text-bordeaux-600 dark:text-bordeaux-400 mb-1">
+                            Digite o valor em BTU/h:
+                        </label>
+                        <input type="number" id="customBtu" min="1000" step="500" placeholder="Ex: 14000" class="w-full bg-slate-50 dark:bg-slate-950 border border-bordeaux-400 dark:border-bordeaux-500/60 rounded-lg px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-bordeaux-500 transition-colors duration-300">
+                    </div>
+
+                    <!-- Quantidade de Máquinas -->
+                    <div>
+                        <label for="quantity" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            Quantidade de Máquinas <span class="text-rose-500 dark:text-rose-400">*</span>
+                        </label>
+                        <input type="number" id="quantity" min="1" max="500" value="1" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3.5 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-bordeaux-500/50 focus:border-bordeaux-500 transition-colors duration-300">
+                    </div>
+
+                    <!-- Horas de Uso por Dia & Dias por Mês -->
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label for="hoursPerDay" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                Uso (Horas/dia)
+                            </label>
+                            <input type="number" id="hoursPerDay" min="0" max="24" step="0.5" value="8" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-bordeaux-500/50 focus:border-bordeaux-500 transition-colors duration-300">
+                        </div>
+                        <div>
+                            <label for="daysPerMonth" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                Uso (Dias/mês)
+                            </label>
+                            <input type="number" id="daysPerMonth" min="0" max="31" value="22" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-bordeaux-500/50 focus:border-bordeaux-500 transition-colors duration-300">
+                        </div>
+                    </div>
+
+                    <!-- Action Submit Button -->
+                    <div class="pt-3">
+                        <button type="submit" id="btnSubmitForm" class="w-full py-2.5 px-4 bg-gradient-to-r from-bordeaux-600 to-bordeaux-700 hover:from-bordeaux-700 hover:to-bordeaux-800 text-white font-semibold text-sm rounded-lg shadow-lg shadow-bordeaux-600/25 transition-all duration-200 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span id="btnSubmitText">Adicionar Ambiente</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl transition-colors duration-300">
+                
+                <!-- Search and Controls Header -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 no-print">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-xs"></i>
+                        <input type="text" id="searchInput" oninput="renderTable()" placeholder="Buscar por nome do ambiente..." class="w-full pl-9 pr-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-bordeaux-500 focus:ring-1 focus:ring-bordeaux-500 transition-colors duration-300">
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <label for="sortBy" class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Ordenar por:</label>
+                        <select id="sortBy" onchange="renderTable()" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-2 focus:outline-none focus:border-bordeaux-500 focus:ring-1 focus:ring-bordeaux-500 transition-colors duration-300">
+                            <option value="created-desc">Mais Recentes</option>
+                            <option value="name-asc">Nome (A - Z)</option>
+                            <option value="btu-desc">Maior Potência Total</option>
+                            <option value="qty-desc">Mais Máquinas</option>
+                            <option value="kwh-desc">Maior Consumo (kWh)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table Wrapper -->
+                <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800/80 transition-colors duration-300">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-slate-100 dark:bg-slate-950/80 text-slate-600 dark:text-slate-400 uppercase font-semibold border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+                            <tr>
+                                <th scope="col" class="py-3 px-4">Ambiente</th>
+                                <th scope="col" class="py-3 px-3 text-center">Qtd</th>
+                                <th scope="col" class="py-3 px-3 text-right">Pot. Unitária</th>
+                                <th scope="col" class="py-3 px-3 text-right">Carga Térmica</th>
+                                <th scope="col" class="py-3 px-3 text-right">Pot. Elétrica</th>
+                                <th scope="col" class="py-3 px-3 text-right">Consumo/mês</th>
+                                <th scope="col" class="py-3 px-4 text-center no-print">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="environmentsTableBody" class="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium text-slate-700 dark:text-slate-200 transition-colors duration-300">
+                            <!-- Dynamic Content Rendered Here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden py-12 text-center">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 flex items-center justify-center mx-auto mb-3 transition-colors duration-300">
+                        <i class="fa-solid fa-wind text-xl"></i>
+                    </div>
+                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nenhum ambiente encontrado</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-500 mt-1 max-w-sm mx-auto">Cadastre novos ambientes no formulário ao lado para iniciar o dimensionamento.</p>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <!-- Custom Modal for Confirmations -->
+    <div id="confirmModal" class="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden transition-opacity">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 transition-colors duration-300">
+            <div class="flex items-center gap-3 text-rose-500 dark:text-rose-400">
+                <div class="p-2.5 bg-rose-100 dark:bg-rose-500/10 rounded-xl">
+                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                </div>
+                <h3 id="modalTitle" class="font-bold text-slate-900 dark:text-slate-100">Confirmar Exclusão</h3>
+            </div>
+            <p id="modalMessage" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Tem certeza que deseja remover este ambiente? Esta ação não pode ser desfeita.
+            </p>
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200">
+                    Cancelar
+                </button>
+                <button type="button" id="modalConfirmBtn" class="px-4 py-1.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 dark:hover:bg-rose-500 text-white rounded-lg shadow-lg shadow-rose-600/30 transition-colors duration-200">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const STORAGE_KEY = 'hvac_environments_app_v1';
+        let environments = [];
+        let modalCallback = null;
+
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            const htmlClasses = document.documentElement.classList;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (htmlClasses.contains('dark')) {
+                htmlClasses.remove('dark');
+                localStorage.setItem('theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            } else {
+                htmlClasses.add('dark');
+                localStorage.setItem('theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            // Setup correct initial theme icon
+            const themeIcon = document.getElementById('themeIcon');
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+
+            loadEnvironments();
+            
+            // Set current date on print report
+            const printDateEl = document.getElementById('printDate');
+            if(printDateEl) {
+                printDateEl.textContent = new Date().toLocaleDateString('pt-BR', {
+                    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+            }
+
+            // Listen to tariff updates
+            document.getElementById('tariffRate').addEventListener('input', () => {
+                renderDashboard();
+                renderTable();
+            });
+        });
+
+        // Math / HVAC Calculation Utilities
+        // Standard EER conversion: 1 kW electrical approx 3412.14 BTU/h
+        const BTU_PER_KW = 3412.14;
+
+        function calculateMetrics(btuUnit, qty, hoursPerDay = 8, daysPerMonth = 22) {
+            const totalBtu = btuUnit * qty;
+            const electricalKw = totalBtu / BTU_PER_KW;
+            const monthlyKwh = electricalKw * hoursPerDay * daysPerMonth;
+            const tariff = parseFloat(document.getElementById('tariffRate').value) || 0.85;
+            const monthlyCost = monthlyKwh * tariff;
+
+            return {
+                totalBtu,
+                electricalKw,
+                monthlyKwh,
+                monthlyCost
+            };
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('pt-BR').format(num);
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        }
+
+        // Local Storage Handling
+        function loadEnvironments() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    environments = JSON.parse(stored);
+                } else {
+                    // Pre-fill with sample items for instant demo
+                    environments = [
+                        { id: '1', name: 'Sala de Reunião Principal', btuUnit: 24000, qty: 2, hoursPerDay: 8, daysPerMonth: 22, createdAt: Date.now() - 10000 },
+                        { id: '2', name: 'Recepção / Hall', btuUnit: 18000, qty: 1, hoursPerDay: 10, daysPerMonth: 26, createdAt: Date.now() - 5000 },
+                        { id: '3', name: 'Diretoria', btuUnit: 12000, qty: 1, hoursPerDay: 8, daysPerMonth: 20, createdAt: Date.now() }
+                    ];
+                    saveToStorage();
+                }
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
+                environments = [];
+            }
+            renderAll();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(environments));
+        }
+
+        function renderAll() {
+            renderTable();
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const totalEnvs = environments.length;
+            let totalUnits = 0;
+            let totalBtu = 0;
+            let totalKw = 0;
+            let totalKwh = 0;
+            let totalCost = 0;
+
+            const tariff = parseFloat(document.getElementById('tariffRate').value) || 0;
+
+            environments.forEach(item => {
+                const m = calculateMetrics(item.btuUnit, item.qty, item.hoursPerDay, item.daysPerMonth);
+                totalUnits += Number(item.qty);
+                totalBtu += m.totalBtu;
+                totalKw += m.electricalKw;
+                totalKwh += m.monthlyKwh;
+                totalCost += m.monthlyKwh * tariff;
+            });
+
+            document.getElementById('dashTotalEnvironments').textContent = formatNumber(totalEnvs);
+            document.getElementById('dashTotalUnits').textContent = formatNumber(totalUnits);
+            document.getElementById('dashTotalBtu').textContent = formatNumber(totalBtu);
+            document.getElementById('dashTotalKw').textContent = totalKw.toFixed(2);
+            document.getElementById('dashTotalKwh').textContent = `${formatNumber(Math.round(totalKwh))} kWh`;
+            document.getElementById('dashTotalCost').textContent = formatCurrency(totalCost);
+        }
+
+        function getFilteredAndSortedData() {
+            const searchQuery = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+            const sortBy = document.getElementById('sortBy').value;
+
+            let filtered = environments.filter(env => env.name.toLowerCase().includes(searchQuery));
+
+            filtered.sort((a, b) => {
+                const ma = calculateMetrics(a.btuUnit, a.qty, a.hoursPerDay, a.daysPerMonth);
+                const mb = calculateMetrics(b.btuUnit, b.qty, b.hoursPerDay, b.daysPerMonth);
+
+                switch (sortBy) {
+                    case 'name-asc':
+                        return a.name.localeCompare(b.name);
+                    case 'btu-desc':
+                        return mb.totalBtu - ma.totalBtu;
+                    case 'qty-desc':
+                        return b.qty - a.qty;
+                    case 'kwh-desc':
+                        return mb.monthlyKwh - ma.monthlyKwh;
+                    case 'created-desc':
+                    default:
+                        return (b.createdAt || 0) - (a.createdAt || 0);
+                }
+            });
+
+            return filtered;
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('environmentsTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const data = getFilteredAndSortedData();
+
+            if (data.length === 0) {
+                tableBody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            let html = '';
+
+            data.forEach(env => {
+                const m = calculateMetrics(env.btuUnit, env.qty, env.hoursPerDay, env.daysPerMonth);
+
+                html += `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors duration-200">
+                    <td class="py-3 px-4">
+                        <div class="font-semibold text-slate-900 dark:text-slate-100">${escapeHtml(env.name)}</div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-normal">
+                            ${env.hoursPerDay || 0}h/dia • ${env.daysPerMonth || 0} dias/mês
+                        </div>
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-bordeaux-700 dark:text-bordeaux-300 border border-bordeaux-200 dark:border-bordeaux-500/20">
+                            ${env.qty}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono text-slate-700 dark:text-slate-300">
+                        ${formatNumber(env.btuUnit)} <span class="text-[10px] text-slate-400 dark:text-slate-500">BTU</span>
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono font-semibold text-bordeaux-600 dark:text-bordeaux-300">
+                        ${formatNumber(m.totalBtu)} <span class="text-[10px] text-slate-400 dark:text-slate-400">BTU</span>
+                    </td>
+                    <td class="py-3 px-3 text-right font-mono text-amber-600 dark:text-amber-300">
+                        ${m.electricalKw.toFixed(2)} <span class="text-[10px] text-slate-400 dark:text-slate-500">kW</span>
+                    </td>
+                    <td class="py-3 px-3 text-right">
+                        <div class="font-mono text-slate-800 dark:text-slate-200 font-semibold">${formatNumber(Math.round(m.monthlyKwh))} kWh</div>
+                        <div class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">${formatCurrency(m.monthlyCost)}</div>
+                    </td>
+                    <td class="py-3 px-4 text-center no-print">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="editEnvironment('${env.id}')" title="Editar" class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-bordeaux-600 dark:hover:text-bordeaux-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="confirmDeleteEnvironment('${env.id}')" title="Excluir" class="p-1.5 text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            });
+
+            tableBody.innerHTML = html;
+        }
+
+        function toggleCustomBtu(val) {
+            const customContainer = document.getElementById('customBtuContainer');
+            const customInput = document.getElementById('customBtu');
+            if (val === 'custom') {
+                customContainer.classList.remove('hidden');
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customContainer.classList.add('hidden');
+                customInput.required = false;
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('editId').value;
+            const name = document.getElementById('envName').value.trim();
+            const btuPreset = document.getElementById('btuPreset').value;
+            const customBtuVal = document.getElementById('customBtu').value;
+            const qty = parseInt(document.getElementById('quantity').value, 10);
+            const hoursPerDay = parseFloat(document.getElementById('hoursPerDay').value) || 0;
+            const daysPerMonth = parseInt(document.getElementById('daysPerMonth').value, 10) || 0;
+
+            let btuUnit = 0;
+            if (btuPreset === 'custom') {
+                btuUnit = parseInt(customBtuVal, 10);
+            } else {
+                btuUnit = parseInt(btuPreset, 10);
+            }
+
+            if (!name || isNaN(btuUnit) || btuUnit <= 0 || isNaN(qty) || qty <= 0) {
+                showToast('Preencha os campos obrigatórios corretamente.', 'warning');
+                return;
+            }
+
+            if (editId) {
+                // Update Existing
+                const index = environments.findIndex(x => x.id === editId);
+                if (index !== -1) {
+                    environments[index] = {
+                        ...environments[index],
+                        name,
+                        btuUnit,
+                        qty,
+                        hoursPerDay,
+                        daysPerMonth
+                    };
+                    showToast('Ambiente atualizado com sucesso!', 'success');
+                }
+            } else {
+                // Add New
+                const newEnv = {
+                    id: Date.now().toString(),
+                    name,
+                    btuUnit,
+                    qty,
+                    hoursPerDay,
+                    daysPerMonth,
+                    createdAt: Date.now()
+                };
+                environments.unshift(newEnv);
+                showToast('Ambiente adicionado com sucesso!', 'success');
+            }
+
+            saveToStorage();
+            resetForm();
+            renderAll();
+        }
+
+        function editEnvironment(id) {
+            const env = environments.find(x => x.id === id);
+            if (!env) return;
+
+            document.getElementById('editId').value = env.id;
+            document.getElementById('envName').value = env.name;
+            document.getElementById('quantity').value = env.qty;
+            document.getElementById('hoursPerDay').value = env.hoursPerDay;
+            document.getElementById('daysPerMonth').value = env.daysPerMonth;
+
+            const btuSelect = document.getElementById('btuPreset');
+            const standardBTUs = ['9000', '12000', '18000', '24000', '30000', '36000', '60000'];
+
+            if (standardBTUs.includes(String(env.btuUnit))) {
+                btuSelect.value = String(env.btuUnit);
+                toggleCustomBtu(String(env.btuUnit));
+            } else {
+                btuSelect.value = 'custom';
+                toggleCustomBtu('custom');
+                document.getElementById('customBtu').value = env.btuUnit;
+            }
+
+            // Update UI to edit mode
+            document.getElementById('formTitle').textContent = 'Editar Ambiente';
+            document.getElementById('btnSubmitText').textContent = 'Salvar Alterações';
+            document.getElementById('formIcon').className = 'fa-solid fa-floppy-disk text-bordeaux-600 dark:text-bordeaux-400';
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+
+            // Scroll to form on mobile
+            document.getElementById('envForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelEdit() {
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('envForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('btuPreset').value = '12000';
+            toggleCustomBtu('12000');
+
+            document.getElementById('formTitle').textContent = 'Adicionar Ambiente';
+            document.getElementById('btnSubmitText').textContent = 'Adicionar Ambiente';
+            document.getElementById('formIcon').className = 'fa-solid fa-plus-circle text-bordeaux-600 dark:text-bordeaux-400';
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+        }
+
+        function confirmDeleteEnvironment(id) {
+            const env = environments.find(x => x.id === id);
+            if (!env) return;
+
+            openModal(
+                'Excluir Ambiente',
+                `Deseja realmente remover o ambiente "${env.name}"?`,
+                () => {
+                    environments = environments.filter(x => x.id !== id);
+                    saveToStorage();
+                    renderAll();
+                    showToast('Ambiente removido com sucesso.', 'info');
+                }
+            );
+        }
+
+        function confirmResetAll() {
+            if (environments.length === 0) {
+                showToast('A lista já está vazia.', 'info');
+                return;
+            }
+
+            openModal(
+                'Limpar Todos os Dados',
+                'Tem certeza de que deseja apagar todos os ambientes cadastrados? Esta ação redefinirá a sua lista.',
+                () => {
+                    environments = [];
+                    saveToStorage();
+                    renderAll();
+                    showToast('Todos os dados foram apagados.', 'info');
+                }
+            );
+        }
+
+        function exportToCSV() {
+            if (environments.length === 0) {
+                showToast('Nenhum dado disponível para exportação.', 'warning');
+                return;
+            }
+
+            const tariff = parseFloat(document.getElementById('tariffRate').value) || 0.85;
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Nome do Ambiente;Quantidade de Maquinas;Potencia Un. (BTU);Potencia Total (BTU);Potencia Eletrica (kW);Consumo Mensal (kWh);Custo Est. Mensal (R$);Horas/Dia;Dias/Mes\n";
+
+            environments.forEach(env => {
+                const m = calculateMetrics(env.btuUnit, env.qty, env.hoursPerDay, env.daysPerMonth);
+                const row = [
+                    `"${env.name.replace(/"/g, '""')}"`,
+                    env.qty,
+                    env.btuUnit,
+                    m.totalBtu,
+                    m.electricalKw.toFixed(3).replace('.', ','),
+                    m.monthlyKwh.toFixed(2).replace('.', ','),
+                    (m.monthlyKwh * tariff).toFixed(2).replace('.', ','),
+                    env.hoursPerDay,
+                    env.daysPerMonth
+                ].join(";");
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `dimensionamento_hvac_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Relatório CSV baixado com sucesso!', 'success');
+        }
+
+        // Custom Modal UI
+        function openModal(title, message, onConfirm) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            modalCallback = onConfirm;
+
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('hidden');
+
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            confirmBtn.onclick = () => {
+                if (modalCallback) modalCallback();
+                closeModal();
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            modalCallback = null;
+        }
+
+        // Toast Helper
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            // Dynamic styles to adapt to light/dark modes
+            let bgColors = 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700';
+            let icon = 'fa-info-circle text-bordeaux-500 dark:text-bordeaux-400';
+
+            if (type === 'success') {
+                bgColors = 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-emerald-500/50';
+                icon = 'fa-circle-check text-emerald-500 dark:text-emerald-400';
+            } else if (type === 'warning') {
+                bgColors = 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-amber-500/50';
+                icon = 'fa-triangle-exclamation text-amber-500 dark:text-amber-400';
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border text-xs shadow-xl dark:shadow-2xl transition-all transform translate-y-2 opacity-0 duration-200 ${bgColors}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i> <span>${escapeHtml(message)}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 200);
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
