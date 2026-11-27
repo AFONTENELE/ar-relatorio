@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadastro de Ar-Condicionado</title>
+<title>Cadastro de Ar-Condicionado - Hospital do Coração</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; padding: 24px 16px; background: #140505; color: #fef2f2; font: 14px/1.4 system-ui, sans-serif; }
@@ -17,9 +17,11 @@
   input:focus, select:focus { outline: 2px solid #ef4444; }
   .full { grid-column: 1 / -1; }
   .hidden { display: none; }
-  .actions { display: flex; gap: 8px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   button { padding: 9px 16px; border: 0; border-radius: 8px; cursor: pointer; font: inherit; font-weight: 600; background: #dc2626; color: #fff; }
+  button:hover { background: #b91c1c; }
   button.sec { background: #7f1d1d; }
+  button.sec:hover { background: #991b1b; }
   button.del { background: transparent; border: 1px solid #f87171; }
   .table { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -29,6 +31,9 @@
   td button { padding: 5px 10px; font-size: 12px; margin: 0 4px 4px 0; }
   .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
   .head h2 { margin: 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; background: #450a0a; border: 1px solid #7f1d1d; color: #fca5a5; margin-top: 2px; }
+  .badge.ok { background: #052e16; border-color: #166534; color: #86efac; }
+  .badge.warn { background: #422006; border-color: #854d0e; color: #fde047; }
   @media print {
     @page { size: A4 landscape; margin: 12mm; }
     body { background: #fff; color: #000; padding: 0; }
@@ -50,45 +55,60 @@
   <section class="no-print">
     <h2 id="formTitle">Adicionar Máquina</h2>
     <form id="form">
-      <label>Ambiente *
-        <input id="name" required placeholder="Ex: Sala de Reunião">
-      </label>
       <label>Número de patrimônio
-        <input id="asset" placeholder="Ex: 004521">
+        <input id="asset" list="patrimonioList" placeholder="Digite ou selecione o patrimônio (Ex: 33376)">
+        <datalist id="patrimonioList"></datalist>
+        <span id="assetHint" class="badge">Digite o patrimônio para buscar na planilha</span>
       </label>
+
+      <label>Ambiente / Localização *
+        <input id="nameSelect" list="nameList" required placeholder="Digite ou selecione o ambiente">
+        <datalist id="nameList"></datalist>
+      </label>
+
       <label>Marca *
-        <select id="brand" required></select>
+        <input id="brand" list="brandList" required placeholder="Digite ou selecione a marca">
+        <datalist id="brandList"></datalist>
       </label>
-      <label id="otherBrandBox" class="hidden">Nome da marca *
-        <input id="otherBrand">
-      </label>
+
       <label>Modelo
         <input id="model" placeholder="Código na etiqueta">
       </label>
+
       <label>Capacidade (BTU/h) *
-        <select id="btuUnit" required></select>
+        <input id="btuUnit" list="btuList" required placeholder="Ex: 12000">
+        <datalist id="btuList"></datalist>
       </label>
-      <label id="otherBtuBox" class="hidden">Outra capacidade (BTU/h) *
-        <input id="otherBtu" type="number" min="1000" step="100">
-      </label>
+
       <label>Tipo de aparelho *
-        <select id="type" required></select>
+        <input id="type" list="typeList" required placeholder="Digite ou selecione o tipo">
+        <datalist id="typeList"></datalist>
       </label>
+
       <label>Tecnologia
-        <select id="tech"></select>
+        <input id="tech" list="techList" placeholder="Ex: Inverter">
+        <datalist id="techList"></datalist>
       </label>
+
       <label>Ciclo
-        <select id="cycle"></select>
+        <input id="cycle" list="cycleList" placeholder="Ex: Frio">
+        <datalist id="cycleList"></datalist>
       </label>
+
       <label>Tensão
-        <select id="voltage"></select>
+        <input id="voltage" list="voltageList" placeholder="Ex: 220 V">
+        <datalist id="voltageList"></datalist>
       </label>
+
       <label>Gás refrigerante
-        <select id="gas"></select>
+        <input id="gas" list="gasList" placeholder="Ex: R-410A">
+        <datalist id="gasList"></datalist>
       </label>
+
       <label>Quantidade *
         <input id="qty" type="number" min="1" max="500" value="1" required>
       </label>
+
       <div class="actions full">
         <button type="submit" id="submitBtn">Adicionar Máquina</button>
         <button type="button" id="cancelBtn" class="sec hidden">Cancelar</button>
@@ -101,13 +121,14 @@
     <div class="head">
       <h2>Máquinas cadastradas (<span id="total">0</span>)</h2>
       <div class="actions no-print">
+        <button type="button" id="importAllBtn" class="sec" title="Importar todos os itens da planilha para a lista">Importar Base da Planilha (193)</button>
         <button type="button" id="pdfBtn">Exportar PDF</button>
         <button type="button" id="sheetBtn">Exportar Planilha</button>
       </div>
     </div>
     <div class="table">
       <table>
-        <thead><tr><th>Patrimônio</th><th>Ambiente</th><th>Marca / Modelo</th><th>Capacidade</th><th>Detalhes</th><th>Qtd</th><th>Ações</th></tr></thead>
+        <thead><tr><th>Patrimônio</th><th>Ambiente / Localização</th><th>Marca / Modelo</th><th>Capacidade</th><th>Detalhes</th><th>Qtd</th><th>Ações</th></tr></thead>
         <tbody id="list"></tbody>
       </table>
     </div>
@@ -115,24 +136,64 @@
 </main>
 
 <script>
-const STORAGE_KEY = 'hvac_environments_app_v1';
-const OTHER = 'Outra';
-const OPTIONS = {
-  brand: ['Agratto', 'Carrier', 'Consul', 'Daikin', 'Electrolux', 'Elgin', 'Fujitsu', 'Gree', 'Hisense', 'Hitachi', 'Komeco', 'LG', 'Midea', 'Philco', 'Samsung', 'Springer Midea', 'TCL', 'Trane', 'York', OTHER],
-  btuUnit: [7000, 7500, 9000, 10000, 12000, 18000, 22000, 24000, 30000, 36000, 48000, 57000, 60000, 80000, OTHER],
-  type: ['Split Hi-Wall', 'Multi Split', 'Janela', 'Cassete', 'Piso-Teto', 'Duto / Embutido', 'Portátil'],
-  tech: ['Inverter', 'Convencional (On/Off)'],
-  cycle: ['Frio', 'Quente e Frio'],
-  voltage: ['127 V', '220 V monofásico', '220 V trifásico', '380 V trifásico'],
-  gas: ['R-32', 'R-410A', 'R-22']
+const STORAGE_KEY = 'hvac_environments_app_v3';
+
+const PLANILHA_DATA = [{"p": "33527", "l": "174 DIRETORIA GERAL, TÉCNICA,", "m": "", "b": null}, {"p": "13667", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13665", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13664", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13717", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13670", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13716", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13668", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13666", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13714", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13647", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13715", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "13663", "l": "181 MANUTENCAO", "m": "", "b": null}, {"p": "33376", "l": "199 SERVICO ECO/ELETROCARD", "m": "CONSUL", "b": 12000}, {"p": "34841", "l": "199 SERVICO ECO/ELETROCARD", "m": "", "b": 12000}, {"p": "37034", "l": "213 SERVICO SOCIAL", "m": "", "b": null}, {"p": "43564", "l": "226 UI - ENFERMARIA SUS", "m": "KOMECO", "b": null}, {"p": "50103", "l": "226 UI - ENFERMARIA SUS", "m": "", "b": null}, {"p": "47146", "l": "226 UI - ENFERMARIA SUS", "m": "", "b": null}, {"p": "14817", "l": "226 UI - ENFERMARIA SUS", "m": "CONSUL", "b": 12000}, {"p": "13577", "l": "226 UI - ENFERMARIA SUS", "m": "CONSUL", "b": null}, {"p": "49818", "l": "226 UI - ENFERMARIA SUS", "m": "", "b": null}, {"p": "34198", "l": "227 UI CORONARIANA", "m": "", "b": null}, {"p": "34197", "l": "227 UI CORONARIANA", "m": "", "b": null}, {"p": "37024", "l": "227 UI CORONARIANA", "m": "", "b": null}, {"p": "42696", "l": "227 UI CORONARIANA", "m": "", "b": null}, {"p": "49819", "l": "232 CENTRO DE IMAGENS", "m": "", "b": null}, {"p": "38280.1", "l": "232 CENTRO DE IMAGENS", "m": "SPRINGER", "b": 12000}, {"p": "50061", "l": "232 CENTRO DE IMAGENS", "m": "", "b": null}, {"p": "49817", "l": "232 CENTRO DE IMAGENS", "m": "", "b": null}, {"p": "50062", "l": "232 CENTRO DE IMAGENS", "m": "", "b": null}, {"p": "38280", "l": "232 CENTRO DE IMAGENS", "m": "SPRINGER", "b": 12000}, {"p": "33341", "l": "233 LABORATORIO DE ANALISES", "m": "LG", "b": 18000}, {"p": "50021", "l": "233 LABORATORIO DE ANALISES", "m": "", "b": null}, {"p": "19256", "l": "233 LABORATORIO DE ANALISES", "m": "SPRINGER", "b": null}, {"p": "33648", "l": "240 PRONTO ATENDIMENTO", "m": "CARRIER", "b": 900}, {"p": "35196", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "38274.1", "l": "240 PRONTO ATENDIMENTO", "m": "SPRINGER", "b": 24000}, {"p": "38274", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": 24000}, {"p": "33642", "l": "240 PRONTO ATENDIMENTO", "m": "LG", "b": 7300}, {"p": "33548", "l": "240 PRONTO ATENDIMENTO", "m": "YORK", "b": 900}, {"p": "33518", "l": "240 PRONTO ATENDIMENTO", "m": "LG", "b": 1200}, {"p": "33320", "l": "240 PRONTO ATENDIMENTO", "m": "YANG", "b": 2400}, {"p": "45170", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "45308", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "47835", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": 12000}, {"p": "47838", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "49647", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "49651", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "49639", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "40703", "l": "240 PRONTO ATENDIMENTO", "m": "", "b": null}, {"p": "13721", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "13720", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "13725", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "13724", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "013723", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "13722", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "42710", "l": "246 BLOCO CIRURGICO", "m": "ELECTROLUX", "b": null}, {"p": "35306", "l": "246 BLOCO CIRURGICO", "m": "YANG", "b": 60000}, {"p": "44628", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "13719", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "13718", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "13404", "l": "246 BLOCO CIRURGICO", "m": "CONSUL", "b": null}, {"p": "49660", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "49659", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "44572", "l": "246 BLOCO CIRURGICO", "m": "", "b": null}, {"p": "34854", "l": "248 UTI ADULTO SUS", "m": "", "b": null}, {"p": "49749", "l": "248 UTI ADULTO SUS", "m": "", "b": null}, {"p": "49748", "l": "248 UTI ADULTO SUS", "m": "", "b": null}, {"p": "49852", "l": "248 UTI ADULTO SUS", "m": "", "b": null}, {"p": "23650", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "27097", "l": "249 UI - ENFERMARIA CONVENIO", "m": "LG", "b": 12000}, {"p": "14810", "l": "249 UI - ENFERMARIA CONVENIO", "m": "CONSUL", "b": 10000}, {"p": "35960", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "35379", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "27131", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": 12000}, {"p": "50232", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "33760", "l": "249 UI - ENFERMARIA CONVENIO", "m": "LG", "b": 12000}, {"p": "50238", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "50239", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "25105", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "45136", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "31452", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "50236", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "50237", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "31458", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "33752", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "17209", "l": "249 UI - ENFERMARIA CONVENIO", "m": "CONSUL", "b": 21000}, {"p": "33977", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "46284", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "47021", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "47524", "l": "249 UI - ENFERMARIA CONVENIO", "m": "TCL", "b": 12000}, {"p": "50231", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "45139", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "46106", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "47270", "l": "249 UI - ENFERMARIA CONVENIO", "m": "LG", "b": null}, {"p": "33784", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "50229", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "50234", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "50230", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "49640", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "45132", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "44561", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "33767", "l": "249 UI - ENFERMARIA CONVENIO", "m": "LG", "b": 9000}, {"p": "50233", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "42596", "l": "249 UI - ENFERMARIA CONVENIO", "m": "", "b": null}, {"p": "44843", "l": "250 ALMOXARIFADO", "m": "", "b": null}, {"p": "50228", "l": "259 FARMACIA", "m": "", "b": null}, {"p": "41441", "l": "259 FARMACIA", "m": "", "b": null}, {"p": "50227", "l": "259 FARMACIA", "m": "", "b": null}, {"p": "37043", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "37045", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "34626", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "34627", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "34656", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "37670", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "23056", "l": "262 AMBULATORIO", "m": "LG", "b": null}, {"p": "37039", "l": "262 AMBULATORIO", "m": "YORK", "b": null}, {"p": "12977", "l": "262 AMBULATORIO", "m": "CONSUL", "b": null}, {"p": "12996", "l": "262 AMBULATORIO", "m": "CONSUL", "b": null}, {"p": "12966", "l": "262 AMBULATORIO", "m": "CONSUL", "b": null}, {"p": "12969", "l": "262 AMBULATORIO", "m": "CONSUL", "b": null}, {"p": "13429", "l": "262 AMBULATORIO", "m": "CONSUL", "b": 12000}, {"p": "23048", "l": "262 AMBULATORIO", "m": "LG", "b": null}, {"p": "34490", "l": "262 AMBULATORIO", "m": "", "b": 9000}, {"p": "13537", "l": "262 AMBULATORIO", "m": "CONSUL", "b": null}, {"p": "38276", "l": "262 AMBULATORIO", "m": "", "b": 9000}, {"p": "42567", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "44453", "l": "262 AMBULATORIO", "m": "AGRATTO", "b": null}, {"p": "42527", "l": "262 AMBULATORIO", "m": "YANG", "b": null}, {"p": "34652", "l": "262 AMBULATORIO", "m": "YORK", "b": 18000}, {"p": "42522", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "49652", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "42521", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "38276.1", "l": "262 AMBULATORIO", "m": "", "b": 9000}, {"p": "34615", "l": "262 AMBULATORIO", "m": "HITACHI", "b": 60000}, {"p": "34639", "l": "262 AMBULATORIO", "m": "LG", "b": 7000}, {"p": "34642", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "36233", "l": "262 AMBULATORIO", "m": "YANG", "b": 12000}, {"p": "38275", "l": "262 AMBULATORIO", "m": "", "b": null}, {"p": "38275.1", "l": "262 AMBULATORIO", "m": "KOMECO", "b": 12000}, {"p": "34614", "l": "262 AMBULATORIO", "m": "HITACHI", "b": 60000}, {"p": "18275", "l": "290 HEMODINAMICA", "m": "SPRINGER CARRIER", "b": null}, {"p": "26995", "l": "290 HEMODINAMICA", "m": "", "b": null}, {"p": "34379", "l": "290 HEMODINAMICA", "m": "LG", "b": 9000}, {"p": "34195", "l": "290 HEMODINAMICA", "m": "", "b": null}, {"p": "34196", "l": "290 HEMODINAMICA", "m": "", "b": null}, {"p": "34200", "l": "290 HEMODINAMICA", "m": "CARRIER", "b": 90000}, {"p": "34867", "l": "290 HEMODINAMICA", "m": "", "b": 12000}, {"p": "26994", "l": "290 HEMODINAMICA", "m": "", "b": null}, {"p": "34199", "l": "290 HEMODINAMICA", "m": "CARRIER", "b": 90000}, {"p": "34883", "l": "290 HEMODINAMICA", "m": "", "b": 12000}, {"p": "13712", "l": "291 zzzz HC - ADMINISTRACAO", "m": "", "b": null}, {"p": "37023", "l": "291 zzzz HC - ADMINISTRACAO", "m": "KOMECO", "b": null}, {"p": "20296", "l": "291 zzzz HC - ADMINISTRACAO", "m": "CONSUL", "b": null}, {"p": "12972", "l": "291 zzzz HC - ADMINISTRACAO", "m": "CONSUL", "b": null}, {"p": "43925", "l": "291 zzzz HC - ADMINISTRACAO", "m": "LG", "b": 22000}, {"p": "33370", "l": "291 zzzz HC - ADMINISTRACAO", "m": "LG", "b": 12000}, {"p": "49637", "l": "292 FINANCEIRO", "m": "", "b": null}, {"p": "47071", "l": "294 COMANDO DE CONTROLE OP", "m": "", "b": null}, {"p": "44408", "l": "294 COMANDO DE CONTROLE OP", "m": "", "b": null}, {"p": "37048", "l": "298 CENTRAL TELEFONICA", "m": "KOMECO", "b": null}, {"p": "13403", "l": "298 CENTRAL TELEFONICA", "m": "CONSUL", "b": null}, {"p": "43921", "l": "299 TECNOLOGIA DA INFORMAC", "m": "", "b": null}, {"p": "23086", "l": "299 TECNOLOGIA DA INFORMAC", "m": "CARRIER", "b": null}, {"p": "49646", "l": "299 TECNOLOGIA DA INFORMAC", "m": "", "b": null}, {"p": "49715", "l": "301 SERVICO DE NUTRICAO E DI", "m": "", "b": null}, {"p": "46688", "l": "301 SERVICO DE NUTRICAO E DI", "m": "", "b": null}, {"p": "44977", "l": "301 SERVICO DE NUTRICAO E DI", "m": "ELECTROLUX", "b": null}, {"p": "49645", "l": "301 SERVICO DE NUTRICAO E DI", "m": "", "b": null}, {"p": "33310", "l": "301 SERVICO DE NUTRICAO E DI", "m": "LG", "b": 18000}, {"p": "37652", "l": "301 SERVICO DE NUTRICAO E DI", "m": "", "b": null}, {"p": "44914", "l": "301 SERVICO DE NUTRICAO E DI", "m": "", "b": null}, {"p": "50212", "l": "302 CONTROLE DE ACESSO E PO", "m": "", "b": null}, {"p": "44955", "l": "302 CONTROLE DE ACESSO E PO", "m": "", "b": null}, {"p": "41259", "l": "523 INFRAESTRUTURA", "m": "", "b": null}, {"p": "45063", "l": "523 INFRAESTRUTURA", "m": "", "b": null}, {"p": "42896", "l": "523 INFRAESTRUTURA", "m": "MIDEA", "b": null}, {"p": "44740", "l": "533 SERVICO DE ARQUIVO MEDI", "m": "", "b": 60000}, {"p": "33541", "l": "533 SERVICO DE ARQUIVO MEDI", "m": "", "b": null}, {"p": "46583", "l": "534 GESTAO DA QUALIDADE E SE", "m": "", "b": null}, {"p": "49643", "l": "548 SESMT", "m": "", "b": null}, {"p": "49644", "l": "621 AGENCIA TRANSFUSIONAL", "m": "", "b": null}, {"p": "33780", "l": "621 AGENCIA TRANSFUSIONAL", "m": "", "b": 12000}, {"p": "39418", "l": "638 RAIOS X", "m": "", "b": null}, {"p": "50017", "l": "671 CENTRAL DE ORTESES, PRO", "m": "", "b": null}, {"p": "31459", "l": "674 RECURSOS HUMANOS", "m": "", "b": null}, {"p": "23049", "l": "675 COMPRAS", "m": "", "b": null}, {"p": "13713", "l": "677 CONTABILIDADE", "m": "", "b": null}, {"p": "32010", "l": "713 UTI ADULTO CONVENIO", "m": "", "b": null}, {"p": "44651", "l": "713 UTI ADULTO CONVENIO", "m": "", "b": null}, {"p": "50042", "l": "717 COMERCIAL", "m": "", "b": null}, {"p": "37031", "l": "717 COMERCIAL", "m": "", "b": null}];
+
+const PLANILHA_MAP = new Map(PLANILHA_DATA.map(item => [item.p, item]));
+const PLANILHA_LOCAIS = [...new Set(PLANILHA_DATA.map(i => i.l).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+const BRAND_NORMALIZE = {
+  'AGRATTO': 'Agratto',
+  'CARRIER': 'Carrier',
+  'CONSUL': 'Consul',
+  'ELECTROLUX': 'Electrolux',
+  'HITACHI': 'Hitachi',
+  'KOMECO': 'Komeco',
+  'LG': 'LG',
+  'MIDEA': 'Midea',
+  'SPRINGER': 'Springer',
+  'SPRINGER CARRIER': 'Springer Carrier',
+  'TCL': 'TCL',
+  'YANG': 'Yang',
+  'YORK': 'York'
 };
+
+const OPTIONS = {
+  nameList: PLANILHA_LOCAIS,
+  brandList: ['Agratto', 'Carrier', 'Consul', 'Daikin', 'Electrolux', 'Elgin', 'Fujitsu', 'Gree', 'Hisense', 'Hitachi', 'Komeco', 'LG', 'Midea', 'Philco', 'Samsung', 'Springer', 'Springer Carrier', 'Springer Midea', 'TCL', 'Trane', 'Yang', 'York'],
+  btuList: [900, 1200, 2400, 7000, 7300, 7500, 9000, 10000, 12000, 18000, 21000, 22000, 24000, 30000, 36000, 48000, 57000, 60000, 80000, 90000],
+  typeList: ['Split Hi-Wall', 'Multi Split', 'Janela', 'Cassete', 'Piso-Teto', 'Duto / Embutido', 'Portátil'],
+  techList: ['Inverter', 'Convencional (On/Off)'],
+  cycleList: ['Frio', 'Quente e Frio'],
+  voltageList: ['127 V', '220 V monofásico', '220 V trifásico', '380 V trifásico'],
+  gasList: ['R-32', 'R-410A', 'R-22']
+};
+
 const $ = id => document.getElementById(id);
 const fmt = n => Number(n).toLocaleString('pt-BR');
 
-for (const [id, values] of Object.entries(OPTIONS)) {
-  $(id).add(new Option('Selecione...', ''));
-  values.forEach(v => $(id).add(new Option(typeof v === 'number' ? fmt(v) + ' BTU/h' : v, v)));
+for (const [listId, values] of Object.entries(OPTIONS)) {
+  const datalist = $(listId);
+  if (!datalist) continue;
+  datalist.textContent = '';
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = typeof v === 'number' ? v : v;
+    if (typeof v === 'number') {
+      opt.label = fmt(v) + ' BTU/h';
+    }
+    datalist.appendChild(opt);
+  });
 }
+
+const datalist = $('patrimonioList');
+PLANILHA_DATA.forEach(item => {
+  const opt = document.createElement('option');
+  opt.value = item.p;
+  opt.label = [item.l, item.m, item.b ? fmt(item.b) + ' BTUs' : ''].filter(Boolean).join(' | ');
+  datalist.appendChild(opt);
+});
 
 let machines = [];
 let editId = null;
@@ -143,18 +204,39 @@ function save() {
   catch (e) { return false; }
 }
 
-function toggleOther() {
-  for (const [select, box, input] of [['brand', 'otherBrandBox', 'otherBrand'], ['btuUnit', 'otherBtuBox', 'otherBtu']]) {
-    const on = $(select).value === OTHER;
-    $(box).classList.toggle('hidden', !on);
-    $(input).required = on;
+function lookupPatrimonio(rawAsset) {
+  const key = rawAsset.trim();
+  const hint = $('assetHint');
+  if (!key) {
+    hint.textContent = 'Digite o patrimônio para buscar na planilha';
+    hint.className = 'badge';
+    return;
+  }
+  const match = PLANILHA_MAP.get(key) || PLANILHA_DATA.find(item => item.p.replace(/^0+/, '') === key.replace(/^0+/, ''));
+  if (match) {
+    $('nameSelect').value = match.l || '';
+    const normBrand = match.m ? (BRAND_NORMALIZE[match.m.toUpperCase()] || match.m) : '';
+    $('brand').value = normBrand;
+    $('btuUnit').value = match.b ? match.b : '';
+
+    const missing = [];
+    if (!normBrand) missing.push('Marca');
+    if (!match.b) missing.push('BTUs');
+    hint.textContent = missing.length
+      ? `Encontrado (${match.l}) — preencha: ${missing.join(' e ')}`
+      : `Encontrado: ${match.l} • ${normBrand} • ${fmt(match.b)} BTUs`;
+    hint.className = missing.length ? 'badge warn' : 'badge ok';
+  } else {
+    hint.textContent = 'Patrimônio não consta na planilha — preencha livremente';
+    hint.className = 'badge warn';
   }
 }
 
 function resetForm() {
   editId = null;
   $('form').reset();
-  toggleOther();
+  $('assetHint').textContent = 'Digite o patrimônio para buscar na planilha';
+  $('assetHint').className = 'badge';
   $('formTitle').textContent = $('submitBtn').textContent = 'Adicionar Máquina';
   $('cancelBtn').classList.add('hidden');
 }
@@ -162,14 +244,10 @@ function resetForm() {
 function edit(m) {
   resetForm();
   editId = m.id;
-  for (const id of ['name', 'asset', 'model', 'type', 'tech', 'cycle', 'voltage', 'gas', 'qty']) $(id).value = m[id] || '';
-  for (const [select, input] of [['brand', 'otherBrand'], ['btuUnit', 'otherBtu']]) {
-    const value = String(m[select] || '');
-    const listed = OPTIONS[select].map(String).includes(value);
-    $(select).value = !value || listed ? value : OTHER;
-    if (value && !listed) $(input).value = value;
+  for (const id of ['asset', 'nameSelect', 'brand', 'model', 'btuUnit', 'type', 'tech', 'cycle', 'voltage', 'gas', 'qty']) {
+    $(id).value = m[id] !== undefined && m[id] !== null ? m[id] : '';
   }
-  toggleOther();
+  if (m.asset) lookupPatrimonio(m.asset);
   $('formTitle').textContent = 'Editar Máquina';
   $('submitBtn').textContent = 'Salvar Alterações';
   $('cancelBtn').classList.remove('hidden');
@@ -177,7 +255,7 @@ function edit(m) {
 }
 
 function remove(m) {
-  if (!confirm('Excluir a máquina do ambiente "' + m.name + '"?')) return;
+  if (!confirm('Excluir a máquina do ambiente "' + m.nameSelect + '"?')) return;
   machines = machines.filter(x => x.id !== m.id);
   if (editId === m.id) resetForm();
   save();
@@ -197,9 +275,9 @@ function render() {
   machines.forEach(m => {
     const row = list.insertRow();
     cell(row, m.asset || '—');
-    cell(row, m.name);
+    cell(row, m.nameSelect);
     cell(row, m.brand || '—', m.model);
-    cell(row, fmt(m.btuUnit) + ' BTU/h');
+    cell(row, m.btuUnit ? fmt(m.btuUnit) + ' BTU/h' : '—');
     cell(row, m.type || '—', [m.tech, m.cycle, m.voltage, m.gas].filter(Boolean).join(' • '));
     cell(row, m.qty);
     const actions = cell(row, '');
@@ -213,28 +291,60 @@ function render() {
   if (!machines.length) {
     const td = list.insertRow().insertCell();
     td.colSpan = 7;
-    td.textContent = 'Nenhuma máquina cadastrada.';
+    td.textContent = 'Nenhuma máquina cadastrada. Digite um patrimônio acima ou clique em "Importar Base da Planilha".';
   }
   $('total').textContent = fmt(machines.reduce((sum, m) => sum + Number(m.qty), 0));
 }
 
-$('brand').onchange = $('btuUnit').onchange = toggleOther;
+$('asset').addEventListener('input', e => lookupPatrimonio(e.target.value));
+$('asset').addEventListener('change', e => lookupPatrimonio(e.target.value));
 $('cancelBtn').onclick = resetForm;
+
 $('form').onsubmit = e => {
   e.preventDefault();
   const data = {};
-  for (const id of ['name', 'asset', 'brand', 'model', 'btuUnit', 'type', 'tech', 'cycle', 'voltage', 'gas', 'qty']) data[id] = $(id).value.trim();
-  if (data.brand === OTHER) data.brand = $('otherBrand').value.trim();
-  data.btuUnit = Number(data.btuUnit === OTHER ? $('otherBtu').value : data.btuUnit);
-  data.qty = Number(data.qty);
-  if (!data.name || !data.brand) { $('msg').textContent = 'Preencha o ambiente e a marca.'; return; }
+  for (const id of ['asset', 'nameSelect', 'brand', 'model', 'btuUnit', 'type', 'tech', 'cycle', 'voltage', 'gas', 'qty']) {
+    data[id] = $(id).value.trim();
+  }
+  data.btuUnit = data.btuUnit ? Number(data.btuUnit) : '';
+  data.qty = Number(data.qty) || 1;
+
+  if (!data.nameSelect || !data.brand) { $('msg').textContent = 'Preencha o ambiente e a marca.'; return; }
 
   if (editId) machines = machines.map(m => m.id === editId ? { ...m, ...data } : m);
-  else machines.unshift({ id: Date.now().toString(), ...data });
+  else machines.unshift({ id: Date.now().toString() + Math.random().toString(36).slice(2, 6), ...data });
 
   $('msg').textContent = save() ? 'Salvo com sucesso!' : 'Adicionado, mas o navegador não permitiu salvar.';
   resetForm();
   render();
+};
+
+$('importAllBtn').onclick = () => {
+  const existingAssets = new Set(machines.map(m => m.asset).filter(Boolean));
+  const toAdd = PLANILHA_DATA.filter(item => !existingAssets.has(item.p));
+  if (!toAdd.length) {
+    alert('Todos os patrimônios da planilha já estão na lista cadastrada.');
+    return;
+  }
+  if (!confirm(`Deseja importar ${toAdd.length} equipamentos da planilha para a tabela abaixo para ir completando os dados?`)) return;
+  const imported = toAdd.map((item, idx) => ({
+    id: (Date.now() + idx).toString(),
+    asset: item.p,
+    nameSelect: item.l,
+    brand: item.m ? (BRAND_NORMALIZE[item.m.toUpperCase()] || item.m) : '',
+    model: '',
+    btuUnit: item.b || '',
+    type: '',
+    tech: '',
+    cycle: '',
+    voltage: '',
+    gas: '',
+    qty: 1
+  }));
+  machines = [...machines, ...imported];
+  save();
+  render();
+  $('msg').textContent = `${imported.length} itens importados da planilha! Clique em "Editar" em qualquer linha para completar os dados.`;
 };
 
 $('pdfBtn').onclick = () => {
@@ -244,12 +354,11 @@ $('pdfBtn').onclick = () => {
 
 $('sheetBtn').onclick = () => {
   if (!machines.length) { alert('Nenhuma máquina para exportar.'); return; }
-  const columns = [['asset', 'Patrimônio'], ['name', 'Ambiente'], ['brand', 'Marca'], ['model', 'Modelo'], ['btuUnit', 'Capacidade (BTU/h)'], ['type', 'Tipo'], ['tech', 'Tecnologia'], ['cycle', 'Ciclo'], ['voltage', 'Tensão'], ['gas', 'Gás'], ['qty', 'Quantidade']];
+  const columns = [['asset', 'Patrimônio'], ['nameSelect', 'Ambiente'], ['brand', 'Marca'], ['model', 'Modelo'], ['btuUnit', 'Capacidade (BTU/h)'], ['type', 'Tipo'], ['tech', 'Tecnologia'], ['cycle', 'Ciclo'], ['voltage', 'Tensão'], ['gas', 'Gás'], ['qty', 'Quantidade']];
   const quote = v => '"' + String(v).replace(/"/g, '""') + '"';
   const value = (m, key) => {
     let v = String(m[key] ?? '');
-    if (/^[=+\-@]/.test(v)) v = "'" + v; // evita que o texto vire fórmula
-    // mantém os zeros à esquerda do patrimônio no Excel
+    if (/^[=+\-@]/.test(v)) v = "'" + v;
     return key === 'asset' && /^\d+$/.test(v) ? '="' + v + '"' : quote(v);
   };
   const lines = [columns.map(c => quote(c[1])), ...machines.map(m => columns.map(c => value(m, c[0])))];
